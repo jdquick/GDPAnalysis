@@ -132,28 +132,132 @@ $(document).ready(function () {
 <h3><strong>Setting environment</strong></h3>
 <ul>
 <li>Load necessary packages and set directories</li>
+<li>Code can be found in appendix</li>
 </ul>
-<pre class="r"><code>## packages required: repmis, dplyr, and ggplot2
-require(repmis)</code></pre>
-<pre><code>## Loading required package: repmis</code></pre>
-<pre class="r"><code>require(plyr)</code></pre>
-<pre><code>## Loading required package: plyr</code></pre>
-<pre class="r"><code>require(dplyr)</code></pre>
-<pre><code>## Loading required package: dplyr</code></pre>
-<pre><code>## 
-## Attaching package: 'dplyr'</code></pre>
-<pre><code>## The following objects are masked from 'package:plyr':
-## 
-##     arrange, count, desc, failwith, id, mutate, rename, summarise,
-##     summarize</code></pre>
-<pre><code>## The following objects are masked from 'package:stats':
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>require(ggplot2)</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
+</div>
+<div id="loading-data" class="section level3">
+<h3><strong>Loading data</strong></h3>
+<ol style="list-style-type: decimal">
+<li>Downloads GDP file from <a href="https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FGDP.csv">https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FGDP.csv</a>
+<ul>
+<li>Reads file into gdp and checks variable names</li>
+<li>Variable names don’t look normal, so read file into gdp without header</li>
+</ul></li>
+<li>Downloads Educ file from <a href="https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FEDSTATS_Country.csv">https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FEDSTATS_Country.csv</a>
+<ul>
+<li>Reads file into educ and checks variable names</li>
+</ul></li>
+</ol>
+<ul>
+<li>Code can be found in appendix</li>
+</ul>
+</div>
+<div id="tidying-data" class="section level3">
+<h3><strong>Tidying data</strong></h3>
+<ol style="list-style-type: decimal">
+<li>educ data
+<ul>
+<li>Subsets educ into educ.tidy with only CountryCode and Income.Group variables</li>
+<li>Checks for NA values</li>
+</ul></li>
+<li>gdp data
+<ul>
+<li>Checks number of NA values in entire data frame</li>
+<li>Checks number of NA values in variables V3, V7, V8, and V9
+<ul>
+<li>all observations for variables V3, V7, V8, and V9 are NA values</li>
+</ul></li>
+<li>Checks variable V6 to see if it contains valid data or all blank values</li>
+<li>Creates gdp.tidy data with the following tidying
+<ul>
+<li>removes first 5 rows because they are headers and/or blanks</li>
+<li>removes variables V3, V7, V8, and V9 as they contain all NA values</li>
+<li>removes variable V6 as it contains only a few values of a,b,c,d,e,f which after looking at the data set online, it is for footnotes about the various countries</li>
+<li>Removes observations where variable V1 is blank &amp; where variable V2 is blank</li>
+<li>Removes double quotes (“) and commas from any variable V5</li>
+<li>Converts variables V2 and V5 to integer</li>
+<li>Divides variable V5 by 1000 for better visibiliy in plot</li>
+<li>Sets variable names to “CountryCode”, “Rank”, “CountryName”, “Dollars.in.Billions” respectively</li>
+</ul></li>
+</ul></li>
+</ol>
+<ul>
+<li>Code can be found in appendix</li>
+</ul>
+<p>Check number of NAs in GDP data</p>
+<pre class="r"><code>sum(is.na(gdp))
+## [1] 1655</code></pre>
+<p>The number of NAs in GDP data before tidying is 1655</p>
+</div>
+<div id="merging-data" class="section level3">
+<h3><strong>Merging data</strong></h3>
+<ul>
+<li>Merges gdp and educ tidy data frames by variable CountryCode
+<ul>
+<li>Verifies number of matches during the merge</li>
+<li>Sorts in descending order by variable rank</li>
+<li>Checks first 5 observations of the first and second variable to verify sort worked as designed</li>
+<li>Obtains the 13th observation’s country</li>
+<li>Views table of variable Income.Group to determine values</li>
+<li>Calculates means of Income.Group = “High income: nonOECD”</li>
+<li>Calculates means of Income.Group = “High income: OECD”</li>
+</ul></li>
+<li>Code can be found in appendix</li>
+</ul>
+<p><strong>Question 1. After merging, how many of the country codes matched?</strong></p>
+<p>According to the dimensions below, there are 189 observations; therefore, there are 189 matches on country code</p>
+<pre class="r"><code>## check dimensions on merged table to determine number of matches
+dim(gdp.and.educ)
+## [1] 189   5</code></pre>
+<p><strong>Question 2. After sorting, what is the 13th country</strong></p>
+<p>The 13th country after sorting the GDP rank is St. Kitts and Nevis as shown below.</p>
+<pre class="r"><code>gdp.and.educ$CountryName[13]
+## [1] &quot;St. Kitts and Nevis&quot;</code></pre>
+<p><strong>Question 3. What are the average GDP rankings for the “High income: OECD” and the “High income: nonOECD” groups?</strong></p>
+<p>The mean (avg) rank of High income: nonOECD group is 91.91304 as shown below.</p>
+<p>The mean (avg) rank of High income: OECD group is 32.96667 as shown below.</p>
+<pre class="r"><code>## Get mean (avg) rank of High income: nonOECD group 
+mean(subset(gdp.and.educ, Income.Group == &quot;High income: nonOECD&quot;)$Rank)
+## [1] 91.91304
+
+## Get mean (avg) rank of High income: OECD group 
+mean(subset(gdp.and.educ, Income.Group == &quot;High income: OECD&quot;)$Rank)
+## [1] 32.96667</code></pre>
+</div>
+<div id="analyzing-data" class="section level3">
+<h3><strong>Analyzing data</strong></h3>
+<ol style="list-style-type: decimal">
+<li><p>Plots Dollars.in.Billions by CountryCode (colored by Income Group), including interpretation of the plot</p></li>
+<li><p>Creates a table quantile versus income group and determines how many countries are Lower middle income but among the 38 nations with the highest GDP</p></li>
+</ol>
+<p><strong>Question 4. Plot the GDP for all of the countries. Use ggplot2 to color your plot by income group</strong></p>
+<p>The plots below show that all of the income groups with the exception of the High income: OECD group have very little variance. The lower middle income group has an outlier. The high income: OECD group has much more variance between the GDPs, and it contains an extreme outlier. The high income: OECD group also has much higher GDPs than the other income groups.</p>
+<pre class="r"><code>## qplot of Dollars.in.Billions by CountryCode, colored by and segregated by Income Group
+
+ggplot(gdp.and.educ, aes(CountryCode,Dollars.in.Billions))+geom_point(color=&quot;cyan&quot;)+
+    facet_wrap(~Income.Group, ncol=2)</code></pre>
+<p><img src="data:image/png;base64,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" alt /><!-- --></p>
+<p><strong>Question 5. Make a table quantile versus income group. How many countries are Lower middle income but among the 38 nations with the highest GDP?</strong></p>
+<p>In reading the table below, we see that 5 countries are in the Lower middle income group, but among the 38 nations with the highest GDP (quantile 5)</p>
+<pre class="r"><code>## separate the sorted data set into 5 quantiles
+gdp.and.educ &lt;- within(gdp.and.educ, quantile &lt;- as.integer(cut(Dollars.in.Billions, quantile(Dollars.in.Billions, probs = 0:5/5), include.lowest = TRUE)))</code></pre>
+<pre class="r"><code>## use table function to create a table quantile versus income group
+table(gdp.and.educ$Income.Group, gdp.and.educ$quantile)
+##                       
+##                         1  2  3  4  5
+##   High income: nonOECD  2  4  8  5  4
+##   High income: OECD     0  1  1 10 18
+##   Low income           11 16  9  1  0
+##   Lower middle income  16  9 11 13  5
+##   Upper middle income   9  8  8  9 11</code></pre>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2><strong>Conclusion</strong></h2>
+<p>It is highly beneficial to belong to the OECD (Organisation for Economic Co-operation and Development) and be in the High income group. This illustrates the benefits of working together.</p>
+</div>
+<div id="appendix" class="section level2">
+<h2><strong>Appendix</strong></h2>
 <div id="session-info" class="section level4">
 <h4><strong>session info</strong></h4>
 <p>R version 3.3.0 (2016-05-03) Platform: x86_64-w64-mingw32/x64 (64-bit) Running under: Windows &gt;= 8 x64 (build 9200)</p>
@@ -166,7 +270,17 @@ require(repmis)</code></pre>
  [9] DBI_0.4 magrittr_1.5 scales_0.4.0 httr_1.1.0<br />
 [13] data.table_1.9.6 R.oo_1.20.0 R.utils_2.3.0 tools_3.3.0<br />
 [17] R.cache_0.12.0 munsell_0.4.3 parallel_3.3.0 colorspace_1.2-6</p>
-<pre class="r"><code>## Set directory variables
+<p>Code chunks</p>
+</div>
+<div id="setting-environment-1" class="section level3">
+<h3><strong>Setting environment</strong></h3>
+<pre class="r"><code>## packages required: repmis, dplyr, and ggplot2
+require(repmis)
+require(plyr)
+require(dplyr)
+require(ggplot2)
+
+## Set directory variables
 ## main directory
 maind &lt;- &quot;/Users/Johnny/OneDrive/Documents/6306/Unit6&quot;
 
@@ -179,23 +293,8 @@ analysisd &lt;- paste(maind, &quot;ANALYSIS&quot;, sep = &quot;/&quot;)
 ## set working directory to data directory
 setwd(datad)</code></pre>
 </div>
-</div>
-<div id="loading-data" class="section level3">
+<div id="loading-data-1" class="section level3">
 <h3><strong>Loading data</strong></h3>
-<ol style="list-style-type: decimal">
-<li>Downloads GDP file from <a href="https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FGDP.csv">https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FGDP.csv</a>
-<ul>
-<li>Reads file into gdp</li>
-<li>Checks variable names</li>
-<li>Variable names don’t look normal, so read file into gdp without header</li>
-</ul></li>
-<li>Downloads Educ file from <a href="https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FEDSTATS_Country.csv">https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FEDSTATS_Country.csv</a>
-<ul>
-<li>Reads file into educ</li>
-<li>Checks variable names</li>
-<li>Variable names look good</li>
-</ul></li>
-</ol>
 <pre class="r"><code>## Set URL for download of GDP data
 url &lt;- &quot;https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FGDP.csv&quot;
 
@@ -203,15 +302,9 @@ url &lt;- &quot;https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FGDP.csv&q
 download.file(url, destfile = &quot;gdp.csv&quot;)
 
 ## read local csv file into gdp data frame
-gdp &lt;- read.csv(&quot;gdp.csv&quot;, stringsAsFactors = FALSE)
-
-## check out variable names
+gdp &lt;- read.csv(&quot;gdp.csv&quot;, stringsAsFactors = FALSE)</code></pre>
+<pre class="r"><code>## check out variable names
 names(gdp)</code></pre>
-<pre><code>##  [1] &quot;X&quot;                           &quot;Gross.domestic.product.2012&quot;
-##  [3] &quot;X.1&quot;                         &quot;X.2&quot;                        
-##  [5] &quot;X.3&quot;                         &quot;X.4&quot;                        
-##  [7] &quot;X.5&quot;                         &quot;X.6&quot;                        
-##  [9] &quot;X.7&quot;                         &quot;X.8&quot;</code></pre>
 <pre class="r"><code>## variable names show that file doesn't have header row, 
 ##    so read in with header = FALSE for generic variable names
 gdp &lt;- read.csv(&quot;gdp.csv&quot;, stringsAsFactors = FALSE, header = FALSE)
@@ -223,173 +316,48 @@ url2 &lt;- &quot;https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FEDSTATS_
 download.file(url2, destfile = &quot;educ.csv&quot;)
 
 ## read local csv file into educ data frame
-educ &lt;- read.csv(&quot;educ.csv&quot;, stringsAsFactors = FALSE)
+educ &lt;- read.csv(&quot;educ.csv&quot;, stringsAsFactors = FALSE)</code></pre>
+<pre class="r"><code>## check out variable names
+names(educ)
 
-## check out variable names
-names(educ)</code></pre>
-<pre><code>##  [1] &quot;CountryCode&quot;                                      
-##  [2] &quot;Long.Name&quot;                                        
-##  [3] &quot;Income.Group&quot;                                     
-##  [4] &quot;Region&quot;                                           
-##  [5] &quot;Lending.category&quot;                                 
-##  [6] &quot;Other.groups&quot;                                     
-##  [7] &quot;Currency.Unit&quot;                                    
-##  [8] &quot;Latest.population.census&quot;                         
-##  [9] &quot;Latest.household.survey&quot;                          
-## [10] &quot;Special.Notes&quot;                                    
-## [11] &quot;National.accounts.base.year&quot;                      
-## [12] &quot;National.accounts.reference.year&quot;                 
-## [13] &quot;System.of.National.Accounts&quot;                      
-## [14] &quot;SNA.price.valuation&quot;                              
-## [15] &quot;Alternative.conversion.factor&quot;                    
-## [16] &quot;PPP.survey.year&quot;                                  
-## [17] &quot;Balance.of.Payments.Manual.in.use&quot;                
-## [18] &quot;External.debt.Reporting.status&quot;                   
-## [19] &quot;System.of.trade&quot;                                  
-## [20] &quot;Government.Accounting.concept&quot;                    
-## [21] &quot;IMF.data.dissemination.standard&quot;                  
-## [22] &quot;Source.of.most.recent.Income.and.expenditure.data&quot;
-## [23] &quot;Vital.registration.complete&quot;                      
-## [24] &quot;Latest.agricultural.census&quot;                       
-## [25] &quot;Latest.industrial.data&quot;                           
-## [26] &quot;Latest.trade.data&quot;                                
-## [27] &quot;Latest.water.withdrawal.data&quot;                     
-## [28] &quot;X2.alpha.code&quot;                                    
-## [29] &quot;WB.2.code&quot;                                        
-## [30] &quot;Table.Name&quot;                                       
-## [31] &quot;Short.Name&quot;</code></pre>
-<pre class="r"><code>## data has good variable names</code></pre>
+## data has good variable names</code></pre>
 </div>
-<div id="tidying-data" class="section level3">
+<div id="tidying-data-1" class="section level3">
 <h3><strong>Tidying data</strong></h3>
-<ol style="list-style-type: decimal">
-<li>educ data
-<ul>
-<li>Subsets educ into educ.tidy with only CountryCode and Income.Group variables</li>
-<li>Views first and last 5 observations</li>
-<li>Checks for NA values</li>
-</ul></li>
-<li>gdp data
-<ul>
-<li>Views first and last 10 observations</li>
-<li>Checks dimensions</li>
-<li>Checks number of NA values in entire data frame</li>
-<li>Checks number of NA values in variables V3, V7, V8, and V9
-<ul>
-<li>all observations for variables V3, V7, V8, and V9 are NA values</li>
-</ul></li>
-<li>Checks variable V6 to see if it contains valid data or all blank values</li>
-<li>Creates gdp.tidy data with the following tidying
-<ul>
-<li>removes first 5 rows because they are headers and/or blanks</li>
-<li>removes variables V3, V7, V8, and V9 as they contain all NA values</li>
-<li>removes variable V6 as it contains only a few values of a,b,c,d,e,f which after looking at the data set online, it is for footnotes about the various countries</li>
-<li>Removes observations where variable V1 is blank</li>
-<li>Removes observations where variable V2 is blank</li>
-<li>Verifies no NA values are remaining</li>
-<li>Removes double quotes (“) from any variable</li>
-<li>Removes commas from variable V5</li>
-<li>Converts variables V2 and V5 to integer</li>
-<li>Divides variable V5 by 1000 for better visibiliy in plot</li>
-<li>Sets variable names to “CountryCode”, “Rank”, “CountryName”, “Dollars.in.Billions” respectively</li>
-<li>Verifies variable names</li>
-</ul></li>
-</ul></li>
-</ol>
 <pre class="r"><code>## only pick CountryCode and Income.Group from educ data
-educ.tidy &lt;- educ[,c(&quot;CountryCode&quot;, &quot;Income.Group&quot;)]
+educ.tidy &lt;- educ[,c(&quot;CountryCode&quot;, &quot;Income.Group&quot;)]</code></pre>
+<pre class="r"><code>## view first 5 observations of educ.tidy data frame to see if any data needs tidying further
+head(educ.tidy, 5)
 
-## view first 5 observations of educ.tidy data frame to see if any data needs tidying further
-head(educ.tidy, 5)</code></pre>
-<pre><code>##   CountryCode         Income.Group
-## 1         ABW High income: nonOECD
-## 2         ADO High income: nonOECD
-## 3         AFG           Low income
-## 4         AGO  Lower middle income
-## 5         ALB  Upper middle income</code></pre>
-<pre class="r"><code>## view last 5 observations of educ.tidy data frame to see if any data needs tidying further
-tail(educ.tidy, 5)</code></pre>
-<pre><code>##     CountryCode        Income.Group
-## 230         YEM Lower middle income
-## 231         ZAF Upper middle income
-## 232         ZAR          Low income
-## 233         ZMB          Low income
-## 234         ZWE          Low income</code></pre>
-<pre class="r"><code>## educ.tidy data looks tidy, but let's do one final check
+## view last 5 observations of educ.tidy data frame to see if any data needs tidying further
+tail(educ.tidy, 5)
+
+## educ.tidy data looks tidy, but let's do one final check
 ## verify number of NAs in educ.tidy data
-sum(is.na(educ.tidy))</code></pre>
-<pre><code>## [1] 0</code></pre>
-<pre class="r"><code>## view first 10 observations of gdp data frame to see if any data needs tidying
-head(gdp, 10)</code></pre>
-<pre><code>##     V1                          V2 V3            V4           V5 V6 V7 V8
-## 1      Gross domestic product 2012 NA                               NA NA
-## 2                                  NA                               NA NA
-## 3                                  NA               (millions of    NA NA
-## 4                          Ranking NA       Economy  US dollars)    NA NA
-## 5                                  NA                               NA NA
-## 6  USA                           1 NA United States  16,244,600     NA NA
-## 7  CHN                           2 NA         China   8,227,103     NA NA
-## 8  JPN                           3 NA         Japan   5,959,718     NA NA
-## 9  DEU                           4 NA       Germany   3,428,131     NA NA
-## 10 FRA                           5 NA        France   2,612,878     NA NA
-##    V9 V10
-## 1  NA  NA
-## 2  NA  NA
-## 3  NA  NA
-## 4  NA  NA
-## 5  NA  NA
-## 6  NA  NA
-## 7  NA  NA
-## 8  NA  NA
-## 9  NA  NA
-## 10 NA  NA</code></pre>
-<pre class="r"><code>## view last 10 observations of gdp data frame to see if any data needs tidying
-tail(gdp, 10)</code></pre>
-<pre><code>##     V1 V2 V3 V4 V5 V6 V7 V8 V9 V10
-## 322       NA          NA NA NA  NA
-## 323       NA          NA NA NA  NA
-## 324       NA          NA NA NA  NA
-## 325       NA          NA NA NA  NA
-## 326       NA          NA NA NA  NA
-## 327       NA          NA NA NA  NA
-## 328       NA          NA NA NA  NA
-## 329       NA          NA NA NA  NA
-## 330       NA          NA NA NA  NA
-## 331       NA          NA NA NA  NA</code></pre>
-<pre class="r"><code>## get observation count in GDP data
-dim(gdp)</code></pre>
-<pre><code>## [1] 331  10</code></pre>
-<pre class="r"><code>## there are 331 observations in GDP data
+sum(is.na(educ.tidy))
 
-## check number of NAs in GDP data
-sum(is.na(gdp))</code></pre>
-<pre><code>## [1] 1655</code></pre>
-<pre class="r"><code>## The number of NAs in GDP data before tidying is 1655
+## view first 10 observations of gdp data frame to see if any data needs tidying
+head(gdp, 10)
 
-## check number of NAs in variables V3, V7, V8, and V9 in GDP data
+## view last 10 observations of gdp data frame to see if any data needs tidying
+tail(gdp, 10)
+
+## get observation count in GDP data
+dim(gdp)
+## there are 331 observations in GDP data</code></pre>
+<pre class="r"><code>sum(is.na(gdp))</code></pre>
+<pre class="r"><code>## check number of NAs in variables V3, V7, V8, and V9 in GDP data
 ##    as they look to contain all NA from the head and tail output
-sum(is.na(gdp$V3))</code></pre>
-<pre><code>## [1] 331</code></pre>
-<pre class="r"><code>sum(is.na(gdp$V7))</code></pre>
-<pre><code>## [1] 331</code></pre>
-<pre class="r"><code>sum(is.na(gdp$V8))</code></pre>
-<pre><code>## [1] 331</code></pre>
-<pre class="r"><code>sum(is.na(gdp$V9))</code></pre>
-<pre><code>## [1] 331</code></pre>
-<pre class="r"><code>## each of the variables V3, V7, V8, and V9 have 331 NA values
+sum(is.na(gdp$V3))
+sum(is.na(gdp$V7))
+sum(is.na(gdp$V8))
+sum(is.na(gdp$V9))
+## each of the variables V3, V7, V8, and V9 have 331 NA values
 ##    which is the same as the total number of observations
 
 ## check variable V6 as it looks to have all blanks and not a valid variable
 table(gdp$V6)</code></pre>
-<pre><code>## 
-##       a   b   c   d   e   f 
-## 325   1   1   1   1   1   1</code></pre>
-<pre class="r"><code>## remove first 5 observations because they are headers and/or blanks
-## remove variables V3, V7, V8, and V9 as they contain all NA
-## remove variable V6 as it contains only a few values of a,b,c,d,e,f
-##    which after looking at the data set online, it is for footnotes about
-##    the various countries
-## so create gdp.tidy data set including only observations 6-331 and variables 1, 2, 4, and 5
+<pre class="r"><code>## Create gdp.tidy data set including only observations 6-end and variables 1, 2, 4, and 5
 gdp.tidy &lt;- gdp[c(6:nrow(gdp)),c(1,2,4,5)]
 
 ## remove observations where variable V1 = &quot;&quot;
@@ -398,11 +366,9 @@ gdp.tidy &lt;- gdp.tidy[(-1 * blanklines),]
 
 ## remove observations where variable V2 = &quot;&quot;
 blanklines &lt;- which(gdp.tidy$V2 == &quot;&quot;)
-gdp.tidy &lt;- gdp.tidy[(-1 * blanklines),]
-
-## verify no NA values are left
+gdp.tidy &lt;- gdp.tidy[(-1 * blanklines),]</code></pre>
+<pre class="r"><code>## verify no NA values are left
 sum(is.na(gdp.tidy))</code></pre>
-<pre><code>## [1] 0</code></pre>
 <pre class="r"><code>## remove double quotes from variable V5
 gdp.tidy$V5 &lt;- gsub(&quot;\&quot;&quot;, &quot;&quot;, gdp.tidy$V5)
 
@@ -419,121 +385,49 @@ gdp.tidy$V5 &lt;- gdp.tidy$V5 / 1000
 gdp.tidy$V2 &lt;- as.integer(gdp.tidy$V2)
 
 ## Set variable names for gdp data
-varnamegdp &lt;- c(&quot;CountryCode&quot;, &quot;Rank&quot;, &quot;CountryName&quot;, &quot;Dollars.in.Billions&quot;)
-names(gdp.tidy) &lt;- varnamegdp
+varnamegdp &lt;- c(&quot;CountryCode&quot;, &quot;Rank&quot;, &quot;CountryName&quot;, &quot;Dollars.in.Billions&quot;)</code></pre>
+<pre class="r"><code>names(gdp.tidy) &lt;- varnamegdp
 
 ## Verify new variable names
 names(gdp.tidy)</code></pre>
-<pre><code>## [1] &quot;CountryCode&quot;         &quot;Rank&quot;                &quot;CountryName&quot;        
-## [4] &quot;Dollars.in.Billions&quot;</code></pre>
 </div>
-<div id="merging-data" class="section level3">
+<div id="merging-data-1" class="section level3">
 <h3><strong>Merging data</strong></h3>
-<ul>
-<li>Merges gdp and educ tidy data frames by variable CountryCode
-<ul>
-<li>Verifies number of matches during the merge</li>
-<li>Determines which country codes did not match if any</li>
-<li>Sorts in descending order by variable rank</li>
-<li>Checks first 5 observations of the first and second variable to verify sort worked as designed</li>
-<li>Obtains the 13th observation’s country</li>
-<li>Views table of variable Income.Group to determine values</li>
-<li>Calculates means of Income.Group = “High income: nonOECD”</li>
-<li>Calculates means of Income.Group = “High income: OECD”</li>
-</ul></li>
-</ul>
 <pre class="r"><code>## merge gdp and educ data frames by CountryCode
 gdp.and.educ &lt;- merge(gdp.tidy, educ.tidy, by=&quot;CountryCode&quot;)</code></pre>
-<p><strong>Question 1. After merging, how many of the country codes matched?</strong></p>
-<p>According to the dimensions below, there are 189 observations; therefore, there are 189 matches on country code</p>
 <pre class="r"><code>## check dimensions on merged table to determine number of matches
 dim(gdp.and.educ)</code></pre>
-<pre><code>## [1] 189   5</code></pre>
 <pre class="r"><code>## sort data frame by rank in descending order
-gdp.and.educ &lt;- gdp.and.educ[order(gdp.and.educ$Rank, decreasing = TRUE),]
-
-## check first few observations to show country code and rank 
+gdp.and.educ &lt;- gdp.and.educ[order(gdp.and.educ$Rank, decreasing = TRUE),]</code></pre>
+<pre class="r"><code>## check first few observations to show country code and rank 
 ##    to verify sort descending worked
 head(gdp.and.educ[c(1, 2)], 5)</code></pre>
-<pre><code>##     CountryCode Rank
-## 173         TUV  190
-## 92          KIR  189
-## 113         MHL  188
-## 137         PLW  187
-## 155         STP  186</code></pre>
-<p><strong>Question 2. After sorting, what is the 13th country</strong></p>
-<p>The 13th country after sorting the GDP rank is St. Kitts and Nevis as shown below.</p>
 <pre class="r"><code>gdp.and.educ$CountryName[13]</code></pre>
-<pre><code>## [1] &quot;St. Kitts and Nevis&quot;</code></pre>
 <pre class="r"><code>## Check to see values of Income.Group variable
 table(gdp.and.educ$Income.Group)</code></pre>
-<pre><code>## 
-## High income: nonOECD    High income: OECD           Low income 
-##                   23                   30                   37 
-##  Lower middle income  Upper middle income 
-##                   54                   45</code></pre>
-<p><strong>Question 3. What are the average GDP rankings for the “High income: OECD” and the “High income: nonOECD” groups?</strong></p>
-<p>The mean (avg) rank of High income: nonOECD group is 91.91304 as shown below.</p>
-<p>The mean (avg) rank of High income: OECD group is 32.96667 as shown below.</p>
 <pre class="r"><code>## Get mean (avg) rank of High income: nonOECD group 
-mean(subset(gdp.and.educ, Income.Group == &quot;High income: nonOECD&quot;)$Rank)</code></pre>
-<pre><code>## [1] 91.91304</code></pre>
-<pre class="r"><code>## Get mean (avg) rank of High income: OECD group 
-mean(subset(gdp.and.educ, Income.Group == &quot;High income: OECD&quot;)$Rank)</code></pre>
-<pre><code>## [1] 32.96667</code></pre>
-</div>
-<div id="analyzing-data" class="section level3">
-<h3><strong>Analyzing data</strong></h3>
-<ol style="list-style-type: decimal">
-<li><p>Plots Dollars.in.Billions by CountryCode (colored by Income Group), including interpretation of the plot</p></li>
-<li><p>Creates a table quantile versus income group and determines how many countries are Lower middle income but among the 38 nations with the highest GDP</p></li>
-</ol>
-<p><strong>Question 4. Plot the GDP for all of the countries. Use ggplot2 to color your plot by income group</strong></p>
-<p>The plots below show that all of the income groups with the exception of the High income: OECD group have very little variance. The lower middle income group has an outlier. The high income: OECD group has much more variance between the GDPs, and it contains an extreme outlier. The high income: OECD group also has much higher GDPs than the other income groups.</p>
-<pre class="r"><code>## attach sorted data set to just provide variable names
-attach(gdp.and.educ)
+mean(subset(gdp.and.educ, Income.Group == &quot;High income: nonOECD&quot;)$Rank)
 
-## qplot of Dollars.in.Billions by CountryCode, colored by and segregated by Income Group
+## Get mean (avg) rank of High income: OECD group 
+mean(subset(gdp.and.educ, Income.Group == &quot;High income: OECD&quot;)$Rank)</code></pre>
+</div>
+<div id="analyzing-data-1" class="section level3">
+<h3><strong>Analyzing data</strong></h3>
+<pre class="r"><code>## attach sorted data set to just provide variable names
+attach(gdp.and.educ)</code></pre>
+<pre class="r"><code>## qplot of Dollars.in.Billions by CountryCode, colored by and segregated by Income Group
 
 ggplot(gdp.and.educ, aes(CountryCode,Dollars.in.Billions))+geom_point(color=&quot;cyan&quot;)+
     facet_wrap(~Income.Group, ncol=2)</code></pre>
-<p><img src="data:image/png;base64,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" alt /><!-- --></p>
 <pre class="r"><code>## detach sorted data set
 detach(gdp.and.educ)</code></pre>
-<p><strong>Question 5. Make a table quantile versus income group. How many countries are Lower middle income but among the 38 nations with the highest GDP?</strong></p>
-<p>In reading the table below, we see that 5 countries are in the Lower middle income group, but among the 38 nations with the highest GDP (quantile 5)</p>
 <pre class="r"><code>## separate the sorted data set into 5 quantiles
-gdp.and.educ &lt;- within(gdp.and.educ, quantile &lt;- as.integer(cut(Dollars.in.Billions, quantile(Dollars.in.Billions, probs = 0:5/5), include.lowest = TRUE)))
-## view header of sorted data set to see new quantile variable
+gdp.and.educ &lt;- within(gdp.and.educ, quantile &lt;- as.integer(cut(Dollars.in.Billions, quantile(Dollars.in.Billions, probs = 0:5/5), include.lowest = TRUE)))</code></pre>
+<pre class="r"><code>## view header of sorted data set to see new quantile variable
 head(gdp.and.educ)</code></pre>
-<pre><code>##     CountryCode Rank           CountryName Dollars.in.Billions
-## 173         TUV  190                Tuvalu               0.040
-## 92          KIR  189              Kiribati               0.175
-## 113         MHL  188      Marshall Islands               0.182
-## 137         PLW  187                 Palau               0.228
-## 155         STP  186 São Tomé and Principe               0.263
-## 59          FSM  185 Micronesia, Fed. Sts.               0.326
-##            Income.Group quantile
-## 173 Lower middle income        1
-## 92  Lower middle income        1
-## 113 Lower middle income        1
-## 137 Upper middle income        1
-## 155 Lower middle income        1
-## 59  Lower middle income        1</code></pre>
 <pre class="r"><code>## use table function to create a table quantile versus income group
 table(gdp.and.educ$Income.Group, gdp.and.educ$quantile)</code></pre>
-<pre><code>##                       
-##                         1  2  3  4  5
-##   High income: nonOECD  2  4  8  5  4
-##   High income: OECD     0  1  1 10 18
-##   Low income           11 16  9  1  0
-##   Lower middle income  16  9 11 13  5
-##   Upper middle income   9  8  8  9 11</code></pre>
 </div>
-</div>
-<div id="conclusion" class="section level2">
-<h2><strong>Conclusion</strong></h2>
-<p>It is highly beneficial to belong to the OECD (Organisation for Economic Co-operation and Development) and be in the High income group. This illustrates the benefits of working together.</p>
 </div>
 </div>
 
